@@ -73,6 +73,7 @@ export interface GuessResult {
   newHint?: Hint
   score?: number
   answer?: HistoricalFigure
+  duplicate?: boolean
 }
 
 export interface SearchResult {

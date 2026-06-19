@@ -10,6 +10,7 @@ export function SearchBar() {
   const submitGuess = useGameStore((s) => s.submitGuess)
   const submitting = useGameStore((s) => s.submitting)
   const over = useGameStore((s) => s.game?.over ?? false)
+  const notice = useGameStore((s) => s.notice)
 
   const [value, setValue] = useState('')
   const [debounced, setDebounced] = useState('')
@@ -97,6 +98,8 @@ export function SearchBar() {
           <CornerDownLeft className="size-4" />
         </Button>
       </div>
+
+      {notice && !over && <p className="mt-2 text-sm text-amber-400">{notice}</p>}
 
       {showDropdown && (
         <ul className="absolute z-30 mt-2 max-h-72 w-full overflow-auto rounded-lg border border-border bg-surface shadow-2xl">

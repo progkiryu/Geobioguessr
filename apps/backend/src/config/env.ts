@@ -16,7 +16,8 @@ export const env = {
 } as const;
 
 export const GAME = {
-  maxAttempts: 6,
+  maxAttempts: 7,
+  totalHints: 6,
   baseScore: 1000,
   penaltyPerWrongGuess: 150,
   firstGuessBonus: 500,

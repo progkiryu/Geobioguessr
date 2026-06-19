@@ -6,6 +6,7 @@ import type { GameMode, GameSession, HistoricalFigure, Hint } from '../types.js'
 import { getFigureById, getRandomFigure, guessMatchesFigure } from './figureService.js';
 import { buildHint, buildHintsUpTo } from '../utils/hints.js';
 import { computeScore } from '../utils/score.js';
+import { normalize } from '../utils/normalize.js';
 
 const sessionKey = (gameId: string) => `game:${gameId}`;
 
@@ -37,6 +38,7 @@ export interface GuessResult {
   newHint?: Hint;
   score?: number;
   answer?: HistoricalFigure;
+  duplicate?: boolean; // guess already tried; ignored (no attempt/hint consumed)
 }
 
 async function saveSession(session: GameSession): Promise<void> {
@@ -146,6 +148,12 @@ export async function submitGuess(gameId: string, guess: string): Promise<GuessR
     return { ...base(), answer: figure };
   }
 
+  // Reject repeats: the same name already guessed must not burn an attempt or hint.
+  const normalizedGuess = normalize(guess);
+  if (session.guesses.some((g) => normalize(g) === normalizedGuess)) {
+    return { ...base(), duplicate: true };
+  }
+
   session.guesses.push(guess);
   const correct = guessMatchesFigure(guess, figure);
 
@@ -159,9 +167,10 @@ export async function submitGuess(gameId: string, guess: string): Promise<GuessR
     return { ...base(), correct: true, answer: figure };
   }
 
-  // Wrong guess: increment, reveal next hint.
+  // Wrong guess: increment, reveal next hint (only up to the last hint level).
   session.attempts += 1;
-  const newHint = buildHint(figure, session.attempts);
+  const newHint =
+    session.attempts <= GAME.totalHints ? buildHint(figure, session.attempts) : undefined;
 
   if (session.attempts >= GAME.maxAttempts) {
     session.over = true;

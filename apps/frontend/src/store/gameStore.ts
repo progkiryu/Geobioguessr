@@ -12,6 +12,7 @@ type Status = 'idle' | 'loading' | 'playing' | 'finished' | 'error'
 interface GameStore {
   status: Status
   error: string | null
+  notice: string | null
   mode: GameMode
   game: GameState | null
   guesses: GuessRecord[]
@@ -25,13 +26,14 @@ interface GameStore {
 export const useGameStore = create<GameStore>((set, get) => ({
   status: 'idle',
   error: null,
+  notice: null,
   mode: 'random',
   game: null,
   guesses: [],
   submitting: false,
 
   startGame: async (mode) => {
-    set({ status: 'loading', error: null, mode, game: null, guesses: [] })
+    set({ status: 'loading', error: null, notice: null, mode, game: null, guesses: [] })
     try {
       const game = mode === 'daily' ? await api.startDaily() : await api.startRandom()
       set({ game, status: 'playing' })
@@ -41,14 +43,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   submitGuess: async (name) => {
-    const { game, submitting } = get()
+    const { game, submitting, guesses } = get()
     if (!game || game.over || submitting) return
     const text = name.trim()
     if (!text) return
 
-    set({ submitting: true, error: null })
+    // Block re-using a guess already made (case/diacritic-insensitive).
+    const norm = (s: string) =>
+      s
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .toLowerCase()
+        .replace(/[._'`’-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    if (guesses.some((g) => norm(g.text) === norm(text))) {
+      set({ notice: `You already guessed "${text}".` })
+      return
+    }
+
+    set({ submitting: true, error: null, notice: null })
     try {
       const result = await api.submitGuess(game.gameId, text)
+
+      // Server also guards against repeats (e.g. an alias of a prior guess).
+      if (result.duplicate) {
+        set({ submitting: false, notice: `You already guessed "${text}".` })
+        return
+      }
 
       const revealedHints: Hint[] = result.newHint
         ? [...game.revealedHints, result.newHint]
@@ -77,5 +99,6 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
   },
 
-  reset: () => set({ status: 'idle', error: null, game: null, guesses: [], submitting: false }),
+  reset: () =>
+    set({ status: 'idle', error: null, notice: null, game: null, guesses: [], submitting: false }),
 }))

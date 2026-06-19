@@ -11,7 +11,7 @@ export function potentialScore(wrongGuesses: number): number {
 }
 
 export function AttemptTracker({ game, guesses }: { game: GameState; guesses: GuessRecord[] }) {
-  const pips = Array.from({ length: game.maxAttempts }, (_, i) => i < game.wrongGuesses)
+  const pips = Array.from({ length: game.maxAttempts }, (_, i) => i <= game.wrongGuesses)
 
   return (
     <div className="space-y-3">
