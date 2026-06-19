@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+/* ----- Design tokens (Tailwind v4 @theme generates utilities) ----- */
+@theme {
+  --color-bg: #0a0f1e;
+  --color-surface: #111a2e;
+  --color-surface-2: #18233d;
+  --color-border: #25334f;
+  --color-muted: #93a4c4;
+  --color-text: #e9eefb;
+  --color-accent: #f4b740;
+  --color-accent-soft: #5a4a1f;
+  --color-sky: #38bdf8;
+  --color-success: #34d399;
+  --color-danger: #f87171;
+
+  --font-display: 'Georgia', 'Times New Roman', serif;
+
+  --radius-card: 1rem;
+
+  --animate-pulse-marker: pulse-marker 2s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.35s ease both;
+
+  @keyframes pulse-marker {
+    0%, 100% { transform: scale(1); opacity: 0.9; }
+    50% { transform: scale(1.18); opacity: 1; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(56, 189, 248, 0.08), transparent 60%),
+      radial-gradient(900px 500px at 0% 110%, rgba(244, 183, 64, 0.07), transparent 55%),
+      var(--color-bg);
+    color: var(--color-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* Custom scrollbar for a tidier feel */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* MapLibre marker styling (markers injected as DOM elements) */
+.geo-marker {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 3px solid #0a0f1e;
+  box-shadow: 0 0 0 2px currentColor, 0 4px 10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.geo-marker--birth { background: var(--color-success); color: var(--color-success); }
+.geo-marker--death { background: var(--color-danger); color: var(--color-danger); }
+
+.maplibregl-popup-content {
+  background: var(--color-surface-2) !important;
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border);
+  border-radius: 0.6rem !important;
+  font-size: 0.8rem;
+  padding: 0.5rem 0.7rem !important;
+}
+.maplibregl-popup-tip { display: none; }
+.maplibregl-ctrl-attrib { font-size: 10px; opacity: 0.6; }
