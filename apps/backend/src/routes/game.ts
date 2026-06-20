@@ -1,13 +1,21 @@
 import { Router } from 'express';
 import { getGameState, startRandomGame, submitGuess } from '../services/gameService.js';
-import { startDailyGame, todayKey } from '../services/dailyService.js';
+import { getDailyFigure, startDailyGame, todayKey } from '../services/dailyService.js';
 
 export const gameRouter = Router();
 
-// GET /api/game/random — start a new random game
+// GET /api/game/random — start a new random game (never today's daily figure)
 gameRouter.get('/random', async (_req, res, next) => {
   try {
-    const state = await startRandomGame();
+    // Keep the Play page distinct from the Daily challenge. Best-effort: if the
+    // daily figure can't be resolved, just start an unrestricted random game.
+    let excludeId: string | undefined;
+    try {
+      excludeId = (await getDailyFigure()).id;
+    } catch {
+      /* ignore — random selection will use the full pool */
+    }
+    const state = await startRandomGame(excludeId);
     res.json(state);
   } catch (err) {
     next(err);

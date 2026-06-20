@@ -89,7 +89,7 @@ export function HintGrid({ revealed }: { revealed: Hint[] }) {
           <div>
             <div className="text-sm font-semibold text-text">Geographic Clue</div>
             <p className="text-xs text-muted">
-              Birth (green) and death (red) locations are marked on the map. Reason about the places
+              <span className="text-green-300">Birth</span> and <span className="text-red-300">death</span> locations are marked on the map. Reason about the places
               to identify the figure.
             </p>
           </div>

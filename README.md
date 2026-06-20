@@ -1,4 +1,4 @@
-# Geobiograph.io
+# Geobioguessr
 
 A browser-based geography + history guessing game. You're shown the **birth and
 death locations** of a historical figure on a world map and must guess who it is.
@@ -13,9 +13,9 @@ of GeoGuessr × Wordle × historical trivia.
 
 | Layer        | Tech                                                                       |
 | ------------ | -------------------------------------------------------------------------- |
-| **Frontend** | Vite · React · TypeScript · Zustand · React Router · TanStack Query · TailwindCSS v4 · MapLibre GL JS |
+| **Frontend** | Vite · React · TypeScript · Zustand · React Router · TanStack Query · TailwindCSS v4 |
 | **Backend**  | Node.js · Express · TypeScript (REST API)                                  |
-| **Database** | MongoDB (figures, daily challenges, leaderboards, analytics)               |
+| **Database** | MongoDB (figures, daily challenges, analytics)                            |
 | **Cache**    | Redis (game sessions, search suggestions, daily puzzle)                    |
 | **Maps**     | Custom SVG Mercator renderer over a bundled world-countries GeoJSON — no WebGL or tile server, renders on any browser |
 | **Data**     | Curated dataset enriched from the Wikipedia REST API                       |
@@ -42,7 +42,7 @@ docker compose up -d
 # 2. Backend — install, seed the database, run the API
 cd apps/backend
 pnpm install
-pnpm seed        # loads 24 figures + fetches portraits from Wikipedia
+pnpm seed        # loads 125 figures + fetches portraits from Wikipedia
 pnpm dev         # API on http://localhost:4000
 
 # 3. Frontend — install and run (in a second terminal)
@@ -65,7 +65,8 @@ to the backend, so no CORS configuration is needed in development.
   are hidden until the game ends.
 - Type a name and guess. Search supports **exact, partial, and fuzzy** matching
   (e.g. `Issac Newten` → Isaac Newton).
-- Each **wrong guess** reveals the next clue:
+- You get **7 guesses**. Each wrong guess reveals the next clue (six in total),
+  so by the final attempt every clue — including the portrait — is on the table:
 
   | Hint | Reveals |
   | ---- | ------- |
@@ -79,25 +80,25 @@ to the backend, so no CORS configuration is needed in development.
 - **Scoring**: start at `1000`, `−150` per wrong guess, `+500` bonus for a
   first-guess solve, minimum `0`. A loss scores `0`.
 - **Daily Challenge** (`/daily`): everyone gets the same figure each UTC day.
-- **Leaderboard** (`/leaderboard`): solved games can post a score.
+- **Statistics**: each finished Daily game contributes to that day's score
+  distribution, shown in the Stats panel after the game ends.
 
 ---
 
 ## API
 
-| Method | Endpoint                                   | Description                          |
-| ------ | ------------------------------------------ | ------------------------------------ |
-| GET    | `/api/health`                              | Service health + figure count        |
-| GET    | `/api/game/random`                         | Start a random game                  |
-| GET    | `/api/game/daily`                          | Start today's daily challenge        |
-| GET    | `/api/game/:gameId`                        | Current game state                   |
-| POST   | `/api/game/guess`                          | `{ gameId, guess }` → result + hint  |
-| GET    | `/api/search?q=ein`                        | Fuzzy search suggestions             |
-| GET    | `/api/leaderboard?mode=daily&date=…`       | Top scores                           |
-| POST   | `/api/leaderboard`                         | `{ gameId, name }` → submit a score  |
+| Method | Endpoint                          | Description                          |
+| ------ | --------------------------------- | ------------------------------------ |
+| GET    | `/api/health`                     | Service health — figure count + Redis status |
+| GET    | `/api/game/random`                | Start a random game (never today's daily figure) |
+| GET    | `/api/game/daily`                 | Start today's daily challenge        |
+| GET    | `/api/game/:gameId`               | Current game state                   |
+| POST   | `/api/game/guess`                 | `{ gameId, guess }` → result + hint  |
+| GET    | `/api/search?q=ein`               | Fuzzy search suggestions             |
+| GET    | `/api/stats/daily?date=…`         | Daily score distribution             |
 
 The in-progress answer is never sent to the client; it is only revealed once a
-game is over. Scores are validated server-side against the stored session.
+game is over. Scores are computed server-side against the stored session.
 
 ---
 
@@ -109,23 +110,23 @@ game is over. Scores are validated server-side against the stored session.
 ├── CONTEXT.md                  # product spec
 └── apps
     ├── backend                 # Express REST API (TypeScript)
-    │   ├── src
-    │   │   ├── config/         # env + game constants
-    │   │   ├── db/             # mongo + redis clients
-    │   │   ├── data/figures.ts # curated historical figures
-    │   │   ├── services/       # game, search, daily, scoring, leaderboard
-    │   │   ├── routes/         # express routers
-    │   │   ├── utils/          # normalize, fuzzy, hints, score
-    │   │   ├── seed.ts         # DB seeder (+ Wikipedia enrichment)
-    │   │   ├── scripts/smoke.ts# end-to-end API smoke test
-    │   │   └── index.ts        # server entrypoint
-    │   └── .env.example
+    │   └── src
+    │       ├── config/         # env + game constants
+    │       ├── db/             # mongo + redis clients
+    │       ├── data/figures.ts # curated historical figures
+    │       ├── services/       # figure, game, search, daily, stats
+    │       ├── routes/         # express routers (game, search, stats)
+    │       ├── utils/          # normalize, fuzzy, hints, score
+    │       ├── lib/            # Wikipedia REST client (portraits + summaries)
+    │       ├── seed.ts         # DB seeder (+ Wikipedia enrichment)
+    │       ├── scripts/        # smoke (e2e), verify-figures, backfill-figures
+    │       └── index.ts        # server entrypoint
     └── frontend                # Vite + React app
         └── src
-            ├── components/     # MapView, SearchBar, HintGrid, ResultScreen, …
-            ├── pages/          # GamePage, LeaderboardPage
+            ├── components/     # MapView, SearchBar, HintGrid, AttemptTracker, ResultScreen, StatsPanel, Header
+            ├── pages/          # GamePage (random + daily)
             ├── store/          # Zustand game store
-            └── lib/            # api client, query client, helpers
+            └── lib/            # api client, query client, sound, helpers
 ```
 
 ---
@@ -140,7 +141,9 @@ game is over. Scores are validated server-side against the stored session.
 | `pnpm start`       | Run API once                             |
 | `pnpm seed`        | Seed MongoDB (with Wikipedia portraits)  |
 | `pnpm typecheck`   | TypeScript check                         |
-| `pnpm exec tsx src/scripts/smoke.ts` | End-to-end API smoke test |
+| `pnpm exec tsx src/scripts/smoke.ts`          | End-to-end API smoke test |
+| `pnpm exec tsx src/scripts/verify-figures.ts` | Audit stored figures (portraits, summaries, links) |
+| `pnpm exec tsx src/scripts/backfill-figures.ts` | Re-fetch missing portraits/summaries |
 
 **Frontend** (`apps/frontend`)
 
@@ -148,13 +151,14 @@ game is over. Scores are validated server-side against the stored session.
 | -------------- | ---------------------------- |
 | `pnpm dev`     | Vite dev server (port 5173)  |
 | `pnpm build`   | Type-check + production build |
+| `pnpm lint`    | ESLint                       |
 | `pnpm preview` | Preview the production build |
 
 ---
 
 ## Configuration
 
-Backend reads from `apps/backend/.env` (see `.env.example`):
+Backend reads from `apps/backend/.env`:
 
 ```
 PORT=4000
@@ -162,6 +166,8 @@ CLIENT_ORIGIN=http://localhost:5173
 MONGO_URL=mongodb://localhost:27017
 MONGO_DB=geobiograph
 REDIS_URL=redis://localhost:6379
+SEARCH_CACHE_TTL=300
+GAME_SESSION_TTL=86400
 ```
 
 Frontend reads `VITE_API_URL` (defaults to `/api`, proxied in dev). For a
@@ -171,7 +177,7 @@ deployed frontend, set it to the full backend URL.
 
 ## Notes
 
-- The figure dataset is a **curated set of 24 real, deceased, non-mythological
+- The figure dataset is a **curated set of 125 real, deceased, non-mythological
   figures** spanning the easy/medium/hard tiers from the spec. Each record links
   back to Wikidata + Wikipedia, and the seeder pulls portraits and summaries from
   the Wikipedia REST API. To grow the catalogue, add entries to

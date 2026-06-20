@@ -59,6 +59,8 @@ export interface GameState {
   birthCoordinates: Coordinates
   deathCoordinates: Coordinates
   revealedHints: Hint[]
+  /** Prior guesses (with correctness), so an in-progress game can be resumed. */
+  guesses?: { text: string; correct: boolean }[]
   score?: number
   answer?: HistoricalFigure
 }
@@ -81,13 +83,14 @@ export interface SearchResult {
   name: string
 }
 
-export interface LeaderboardEntry {
-  mode: GameMode
-  date?: string
-  name: string
+export interface ScoreBucket {
   score: number
-  attempts: number
-  figureId: string
-  figureName: string
-  createdAt: string
+  count: number
+}
+
+export interface DailyStats {
+  date: string
+  total: number
+  solved: number
+  distribution: ScoreBucket[]
 }

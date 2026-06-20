@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils'
 const links = [
   { to: '/', label: 'Play', end: true },
   { to: '/daily', label: 'Daily' },
-  { to: '/leaderboard', label: 'Leaderboard' },
 ]
 
 export function Header() {

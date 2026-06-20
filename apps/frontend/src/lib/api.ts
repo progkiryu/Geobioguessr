@@ -1,10 +1,4 @@
-import type {
-  GameState,
-  GuessResult,
-  LeaderboardEntry,
-  GameMode,
-  SearchResult,
-} from '@/types'
+import type { DailyStats, GameState, GuessResult, SearchResult } from '@/types'
 
 const BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -40,15 +34,6 @@ export const api = {
   search: (q: string, limit = 8) =>
     request<SearchResult[]>(`/search?q=${encodeURIComponent(q)}&limit=${limit}`),
 
-  getLeaderboard: (mode: GameMode, date?: string, limit = 20) => {
-    const params = new URLSearchParams({ mode, limit: String(limit) })
-    if (date) params.set('date', date)
-    return request<LeaderboardEntry[]>(`/leaderboard?${params.toString()}`)
-  },
-
-  submitScore: (gameId: string, name: string) =>
-    request<{ rank: number; entry: LeaderboardEntry }>('/leaderboard', {
-      method: 'POST',
-      body: JSON.stringify({ gameId, name }),
-    }),
+  getDailyStats: (date?: string) =>
+    request<DailyStats>(`/stats/daily${date ? `?date=${encodeURIComponent(date)}` : ''}`),
 }

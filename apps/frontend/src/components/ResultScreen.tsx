@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Trophy, Frown, Share2, RotateCcw, ExternalLink, Check } from 'lucide-react'
+import { Trophy, Frown, Share2, RotateCcw, ExternalLink, Check, X, BarChart3 } from 'lucide-react'
 import type { GameState } from '@/types'
 import type { GuessRecord } from '@/store/gameStore'
-import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { initialsOf } from '@/lib/format'
@@ -20,16 +19,17 @@ function buildShare(game: GameState, guesses: GuessRecord[]): string {
 export function ResultScreen({
   game,
   guesses,
+  onClose,
+  onShowStats,
   onNewGame,
 }: {
   game: GameState
   guesses: GuessRecord[]
+  onClose: () => void
+  onShowStats: () => void
   onNewGame: () => void
 }) {
   const answer = game.answer
-  const [name, setName] = useState('')
-  const [rank, setRank] = useState<number | null>(null)
-  const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
 
   if (!answer) return null
@@ -44,28 +44,23 @@ export function ResultScreen({
     }
   }
 
-  async function submitScore() {
-    if (!name.trim() || submitting) return
-    setSubmitting(true)
-    try {
-      const res = await api.submitScore(game.gameId, name.trim())
-      setRank(res.rank)
-    } catch {
-      /* ignore */
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="animate-fade-up w-full max-w-lg overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface shadow-2xl">
+      <div className="animate-fade-up relative w-full max-w-lg overflow-hidden rounded-[var(--radius-card)] border border-border bg-surface shadow-2xl">
+        {/* Close — dismiss the board to inspect the map & hints underneath */}
+        <button
+          onClick={onClose}
+          aria-label="Close result"
+          className="absolute right-3 top-3 z-10 grid size-8 place-items-center rounded-md text-text/70 transition-colors hover:bg-black/20 hover:text-text"
+        >
+          <X className="size-5" />
+        </button>
         {/* Banner */}
         <div
           className={
             game.solved
-              ? 'flex items-center gap-3 bg-success/15 px-6 py-4 text-success'
-              : 'flex items-center gap-3 bg-danger/15 px-6 py-4 text-danger'
+              ? 'flex items-center gap-3 bg-success/15 py-4 pl-6 pr-14 text-success'
+              : 'flex items-center gap-3 bg-danger/15 py-4 pl-6 pr-14 text-danger'
           }
         >
           {game.solved ? <Trophy className="size-6" /> : <Frown className="size-6" />}
@@ -129,35 +124,6 @@ export function ResultScreen({
           >
             Read more on Wikipedia <ExternalLink className="size-3.5" />
           </a>
-
-          {/* Leaderboard submission (solved games only) */}
-          {game.solved && (
-            <div className="mt-5 rounded-lg border border-border bg-surface-2 p-3">
-              {rank === null ? (
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <label className="text-[11px] uppercase tracking-wide text-muted">
-                      Add to leaderboard
-                    </label>
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      maxLength={24}
-                      placeholder="Your name"
-                      className="mt-1 h-10 w-full rounded-md border border-border bg-surface px-3 text-sm focus:border-accent focus:outline-none"
-                    />
-                  </div>
-                  <Button onClick={submitScore} disabled={!name.trim() || submitting}>
-                    Submit
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-success">
-                  <Check className="size-4" /> Submitted! You ranked #{rank} on this board.
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         <div className="flex gap-3 border-t border-border p-4">
@@ -165,9 +131,18 @@ export function ResultScreen({
             {copied ? <Check className="size-4" /> : <Share2 className="size-4" />}
             {copied ? 'Copied!' : 'Share'}
           </Button>
-          <Button className="flex-1" onClick={onNewGame}>
-            <RotateCcw className="size-4" /> New game
-          </Button>
+          {/* Statistics show the Daily score distribution — only relevant in Daily mode. */}
+          {game.mode === 'daily' && (
+            <Button variant="secondary" className="flex-1" onClick={onShowStats}>
+              <BarChart3 className="size-4" /> Statistics
+            </Button>
+          )}
+          {/* Daily is a single fixed puzzle per day — no "next game" to start. */}
+          {game.mode !== 'daily' && (
+            <Button className="flex-1" onClick={onNewGame}>
+              <RotateCcw className="size-4" /> New game
+            </Button>
+          )}
         </div>
       </div>
     </div>

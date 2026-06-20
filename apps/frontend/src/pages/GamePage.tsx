@@ -1,5 +1,5 @@
-import { useEffect, useRef, type ReactNode } from 'react'
-import { AlertTriangle, CalendarClock, Shuffle } from 'lucide-react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { AlertTriangle, CalendarClock, Shuffle, ClipboardList, BarChart3 } from 'lucide-react'
 import type { GameMode } from '@/types'
 import { useGameStore } from '@/store/gameStore'
 import { MapView } from '@/components/MapView'
@@ -7,21 +7,38 @@ import { SearchBar } from '@/components/SearchBar'
 import { HintGrid } from '@/components/HintGrid'
 import { AttemptTracker } from '@/components/AttemptTracker'
 import { ResultScreen } from '@/components/ResultScreen'
+import { StatsPanel } from '@/components/StatsPanel'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 
 export function GamePage({ mode }: { mode: GameMode }) {
-  const { status, error, game, guesses, startGame } = useGameStore()
+  const { status, error, game, guesses, ensureGame, startGame } = useGameStore()
   const startedMode = useRef<GameMode | null>(null)
+  const [resultDismissed, setResultDismissed] = useState(false)
+  const [showStats, setShowStats] = useState(false)
 
   useEffect(() => {
-    if (startedMode.current !== mode) {
-      startedMode.current = mode
-      void startGame(mode)
-    }
-  }, [mode, startGame])
+    if (startedMode.current === mode) return
+    const isModeSwitch = startedMode.current !== null
+    startedMode.current = mode
+    setResultDismissed(false)
+    setShowStats(false)
+    void ensureGame(mode).then(() => {
+      // Switching between Play and Daily shouldn't re-pop the result card for a
+      // game that's already finished — keep it dismissed. (Finishing live leaves
+      // the mode unchanged, so this effect doesn't fire and the card still shows.)
+      if (isModeSwitch && useGameStore.getState().game?.over) {
+        setResultDismissed(true)
+      }
+    })
+  }, [mode, ensureGame])
+
+  function newFigure() {
+    setResultDismissed(false)
+    void startGame(mode)
+  }
 
   if (status === 'loading' || (status === 'idle' && !game)) {
     return (
@@ -63,9 +80,25 @@ export function GamePage({ mode }: { mode: GameMode }) {
             </Badge>
           )}
         </div>
-        <Button variant="ghost" size="sm" onClick={() => startGame(mode)}>
-          <Shuffle className="size-4" /> New figure
-        </Button>
+        <div className="flex items-center gap-1">
+          {/* Statistics show the Daily score distribution — only relevant in Daily mode. */}
+          {gameOver && mode === 'daily' && (
+            <Button variant="ghost" size="sm" onClick={() => setShowStats(true)}>
+              <BarChart3 className="size-4" /> Statistics
+            </Button>
+          )}
+          {gameOver && resultDismissed && (
+            <Button variant="ghost" size="sm" onClick={() => setResultDismissed(false)}>
+              <ClipboardList className="size-4" /> Show result
+            </Button>
+          )}
+          {/* Daily is one fixed puzzle per day — no reshuffling it. */}
+          {mode !== 'daily' && (
+            <Button variant="ghost" size="sm" onClick={newFigure}>
+              <Shuffle className="size-4" /> New figure
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
@@ -101,8 +134,22 @@ export function GamePage({ mode }: { mode: GameMode }) {
         </div>
       </div>
 
-      {gameOver && (
-        <ResultScreen game={game} guesses={guesses} onNewGame={() => startGame(mode)} />
+      {gameOver && !resultDismissed && (
+        <ResultScreen
+          game={game}
+          guesses={guesses}
+          onClose={() => setResultDismissed(true)}
+          onShowStats={() => setShowStats(true)}
+          onNewGame={newFigure}
+        />
+      )}
+
+      {showStats && (
+        <StatsPanel
+          date={game.date}
+          highlightScore={mode === 'daily' && game.over ? game.score : undefined}
+          onClose={() => setShowStats(false)}
+        />
       )}
     </div>
   )

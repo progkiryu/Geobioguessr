@@ -31,10 +31,14 @@ export function getFigureById(id: string): HistoricalFigure | undefined {
   return cache.find((f) => f.id === id);
 }
 
-export function getRandomFigure(): HistoricalFigure {
+/** A random figure, optionally excluding one id (e.g. today's daily challenge). */
+export function getRandomFigure(excludeId?: string): HistoricalFigure {
   if (cache.length === 0) throw new Error('No figures loaded.');
-  const index = Math.floor(Math.random() * cache.length);
-  return cache[index];
+  const pool = excludeId ? cache.filter((f) => f.id !== excludeId) : cache;
+  // Fall back to the full set if exclusion would leave nothing to pick from.
+  const list = pool.length > 0 ? pool : cache;
+  const index = Math.floor(Math.random() * list.length);
+  return list[index];
 }
 
 /** Fuzzy search over names + aliases. Returns up to `limit` matches. */

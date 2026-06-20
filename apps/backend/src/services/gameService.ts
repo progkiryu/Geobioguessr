@@ -24,6 +24,7 @@ export interface PublicGameState {
   birthCoordinates: { lat: number; lng: number };
   deathCoordinates: { lat: number; lng: number };
   revealedHints: Hint[];
+  guesses: { text: string; correct: boolean }[];
   score?: number;
   answer?: HistoricalFigure;
 }
@@ -70,6 +71,12 @@ function toPublicState(session: GameSession, figure: HistoricalFigure): PublicGa
     birthCoordinates: coords(figure, 'birth'),
     deathCoordinates: coords(figure, 'death'),
     revealedHints: buildHintsUpTo(figure, session.attempts),
+    // The game ends the moment a guess is correct, so only the final guess of a
+    // solved game can be the correct one; everything else is a wrong guess.
+    guesses: session.guesses.map((text, i) => ({
+      text,
+      correct: session.solved && i === session.guesses.length - 1,
+    })),
     score: session.score,
   };
   if (session.over) state.answer = figure;
@@ -97,8 +104,8 @@ export async function startGame(
   return toPublicState(session, figure);
 }
 
-export async function startRandomGame(): Promise<PublicGameState> {
-  return startGame(getRandomFigure(), 'random');
+export async function startRandomGame(excludeId?: string): Promise<PublicGameState> {
+  return startGame(getRandomFigure(excludeId), 'random');
 }
 
 /** Fetch the current public state of an in-progress or finished game. */
@@ -116,6 +123,7 @@ function recordAnalytics(session: GameSession): void {
       type: 'game_finished',
       mode: session.mode,
       figureId: session.figureId,
+      date: session.date,
       attempts: session.attempts,
       solved: session.solved,
       score: session.score,

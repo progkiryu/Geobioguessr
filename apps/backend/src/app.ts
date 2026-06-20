@@ -5,7 +5,7 @@ import { pingRedis } from './db/redis.js';
 import { getAllFigures } from './services/figureService.js';
 import { gameRouter } from './routes/game.js';
 import { searchRouter } from './routes/search.js';
-import { leaderboardRouter } from './routes/leaderboard.js';
+import { statsRouter } from './routes/stats.js';
 
 export function createApp() {
   const app = express();
@@ -29,7 +29,7 @@ export function createApp() {
 
   app.use('/api/game', gameRouter);
   app.use('/api/search', searchRouter);
-  app.use('/api/leaderboard', leaderboardRouter);
+  app.use('/api/stats', statsRouter);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Not found.' });

@@ -1,4 +1,4 @@
-import { XCircle } from 'lucide-react'
+import { CircleCheck, XCircle } from 'lucide-react'
 import type { GameState } from '@/types'
 import type { GuessRecord } from '@/store/gameStore'
 import { cn } from '@/lib/utils'
@@ -51,10 +51,10 @@ export function AttemptTracker({ game, guesses }: { game: GameState; guesses: Gu
               key={i}
               className={cn(
                 'flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm',
-                g.correct ? 'bg-success/10 text-success' : 'bg-surface-2 text-muted',
+                g.correct ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger',
               )}
             >
-              {!g.correct && <XCircle className="size-3.5 shrink-0" />}
+              {!g.correct ? <XCircle className="size-3.5 shrink-0" /> : <CircleCheck className="size-3.5 shrink-0" />}
               <span className="truncate">{g.text}</span>
             </li>
           ))}

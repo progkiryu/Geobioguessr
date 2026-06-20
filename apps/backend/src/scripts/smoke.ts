@@ -4,13 +4,13 @@
  */
 const BASE = `http://localhost:${process.env.PORT ?? 4000}/api`;
 
-async function get(path: string) {
+async function get(path: string): Promise<any> {
   const res = await fetch(`${BASE}${path}`);
   if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
   return res.json();
 }
 
-async function post(path: string, body: unknown) {
+async function post(path: string, body: unknown): Promise<any> {
   const res = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -72,11 +72,11 @@ async function main() {
   const third = await post('/game/guess', { gameId: d3.gameId, guess: answerName });
   check('correct on 3rd attempt => score 700', third.correct === true && third.score === 700, third.score);
 
-  console.log('Leaderboard submit:');
-  const lb = await post('/leaderboard', { gameId: daily2.gameId, name: 'SmokeTester' });
-  check('score recorded with a rank', typeof lb.rank === 'number', lb);
-  const board = await get('/game/daily').then(() => get(`/leaderboard?mode=daily&date=${daily2.date}`));
-  check('leaderboard returns entries', Array.isArray(board) && board.length > 0, board);
+  console.log('Daily statistics:');
+  const stats = await get(`/stats/daily?date=${daily.date}`);
+  check('distribution has score buckets', Array.isArray(stats.distribution) && stats.distribution.length > 0, stats);
+  check('counts the finished daily games', stats.total >= 3, stats);
+  check('1500 bucket has the first-guess solve', stats.distribution.find((b: any) => b.score === 1500)?.count >= 1, stats.distribution);
 
   console.log(`\n${failures === 0 ? 'ALL CHECKS PASSED ✅' : `${failures} CHECK(S) FAILED ❌`}`);
   process.exit(failures === 0 ? 0 : 1);

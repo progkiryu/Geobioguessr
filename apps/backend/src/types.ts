@@ -87,14 +87,3 @@ export interface SearchResult {
   id: string;
   name: string;
 }
-
-export interface LeaderboardEntry {
-  mode: GameMode;
-  date?: string;
-  name: string;
-  score: number;
-  attempts: number;
-  figureId: string;
-  figureName: string;
-  createdAt: Date;
-}
