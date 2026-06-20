@@ -1,5 +1,7 @@
 # Geobioguessr
 
+Inspired by @solunaaaa16 on Tiktok, specifically this video: https://www.tiktok.com/@solunaaaa16/video/7646355445199817997
+
 A browser-based geography + history guessing game. You're shown the **birth and
 death locations** of a historical figure on a world map and must guess who it is.
 Every wrong guess reveals one more biographical clue — up to six — in the spirit
