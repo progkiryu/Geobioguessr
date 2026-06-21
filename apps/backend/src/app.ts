@@ -17,6 +17,16 @@ export function createApp() {
   );
   app.use(express.json());
 
+  // Liveness check at the root — lets the host platform (and a browser) confirm
+  // the server is up without touching the database.
+  app.get('/', (_req, res) => {
+    res.json({
+      name: 'Geobioguessr API',
+      status: 'ok',
+      time: new Date().toISOString(),
+    });
+  });
+
   app.get('/api/health', async (_req, res) => {
     const redisOk = await pingRedis();
     res.json({

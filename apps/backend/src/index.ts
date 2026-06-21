@@ -4,7 +4,7 @@ import { getRedis, closeRedis, pingRedis } from './db/redis.js';
 import { loadFigures } from './services/figureService.js';
 import { createApp } from './app.js';
 
-async function main() {
+async function initDataStores() {
   console.log('[startup] connecting to MongoDB...');
   await connectMongo();
 
@@ -18,11 +18,24 @@ async function main() {
   if (count === 0) {
     console.warn('[startup] WARNING: no figures found. Run `pnpm seed` to populate the database.');
   }
+}
 
+async function main() {
+  // Start listening first so the host platform (e.g. Render) immediately detects
+  // the open port, then connect to the data stores. A DB failure is logged but
+  // doesn't stop the server booting — the process stays up and DB-backed routes
+  // simply return errors until connectivity is restored.
   const app = createApp();
-  const server = app.listen(env.port, () => {
-    console.log(`[startup] Geobioguessr API listening on http://localhost:${env.port}`);
+  const server = app.listen(env.port, '0.0.0.0', () => {
+    console.log(`[startup] Geobioguessr API listening on port ${env.port}`);
   });
+
+  try {
+    await initDataStores();
+  } catch (err) {
+    console.error('[startup] data store initialization failed:', err);
+    console.error('[startup] server is running, but database-backed routes will fail until this is fixed.');
+  }
 
   const shutdown = async (signal: string) => {
     console.log(`\n[shutdown] received ${signal}, closing...`);
