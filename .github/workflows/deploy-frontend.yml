@@ -47,10 +47,11 @@ jobs:
 
       - name: Build
         env:
-          # Pages serves from https://progkiryu.github.io/Geobioguessr/, so the
-          # base path must match the repository name. If you later attach a custom
-          # domain (served from the root), change this to '/'.
-          BASE_PATH: /Geobioguessr/
+          # Served from the custom domain www.geobioguessr.com at the root, so the
+          # base path is '/'. (If you ever drop the custom domain and serve from
+          # https://progkiryu.github.io/Geobioguessr/, change this back to
+          # '/Geobioguessr/' so asset URLs include the repo-name subpath.)
+          BASE_PATH: /
           # NOTE: the backend API base (VITE_API_URL) is read from the committed
           # apps/frontend/.env.production by Vite's production mode. Do NOT set it
           # here as a shell env var / repo Variable: an unset Variable resolves to
