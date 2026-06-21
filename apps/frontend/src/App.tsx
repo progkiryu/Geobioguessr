@@ -8,8 +8,8 @@ function App() {
       <Header />
       <main>
         <Routes>
-          <Route path="/" element={<GamePage mode="random" />} />
-          <Route path="/daily" element={<GamePage mode="daily" />} />
+          <Route path="/" element={<GamePage mode="daily" />} />
+          <Route path="/random" element={<GamePage mode="random" />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

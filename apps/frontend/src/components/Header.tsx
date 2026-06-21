@@ -3,8 +3,8 @@ import { Globe2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const links = [
-  { to: '/', label: 'Play', end: true },
-  { to: '/daily', label: 'Daily' },
+  { to: '/', label: 'Daily', end: true },
+  { to: '/random', label: 'Play' },
 ]
 
 export function Header() {

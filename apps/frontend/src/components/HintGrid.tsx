@@ -24,9 +24,9 @@ const SLOTS: { level: number; title: string; subtitle: string; icon: typeof Lock
 function Field({ label, value }: { label: string; value?: string | number }) {
   if (value === undefined || value === '') return null
   return (
-    <div>
+    <div className="min-w-0">
       <div className="text-[11px] uppercase tracking-wide text-muted">{label}</div>
-      <div className="text-sm text-text">{value}</div>
+      <div className="text-sm text-text break-words">{value}</div>
     </div>
   )
 }
@@ -34,8 +34,10 @@ function Field({ label, value }: { label: string; value?: string | number }) {
 function HintBody({ hint }: { hint: Hint }) {
   switch (hint.level) {
     case 1:
+      // Auto-fit columns so the fields reflow to fewer columns (eventually a
+      // single vertical stack) instead of crowding when the card is narrow.
       return (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(4.5rem,1fr))] gap-3">
           <Field label="Born" value={hint.data.born} />
           <Field label="Died" value={hint.data.died} />
           <Field label="Age" value={hint.data.age} />
@@ -43,7 +45,7 @@ function HintBody({ hint }: { hint: Hint }) {
       )
     case 2:
       return (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(4.5rem,1fr))] gap-3">
           <Field label="Ethnicity" value={hint.data.ethnicity} />
           <Field label="Nationality" value={hint.data.nationality} />
           <Field label="Gender" value={hint.data.gender} />
