@@ -1,5 +1,5 @@
 node_modules/
-dist/
+dist-backend/
 .env.dev
 .env.prod
 *.log
