@@ -1,0 +1,82 @@
+name: Deploy frontend to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    # Only rebuild when the frontend (or this workflow) changes.
+    paths:
+      - 'apps/frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+# Permissions required by the official GitHub Pages deployment actions.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one Pages deployment at a time; let an in-progress run finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        env:
+          # Pages serves from https://progkiryu.github.io/Geobioguessr/, so the
+          # base path must match the repository name. If you later attach a custom
+          # domain (served from the root), change this to '/'.
+          BASE_PATH: /Geobioguessr/
+          # The deployed backend's API base, e.g. https://your-backend.example.com/api
+          # Configure it as a repository Variable:
+          #   Settings -> Secrets and variables -> Actions -> Variables -> New variable
+          #   Name: VITE_API_URL
+          # If left unset it falls back to '/api', which has no backend on Pages,
+          # so the game UI will load but cannot fetch figures.
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: pnpm build
+
+      - name: Add SPA fallback for client-side routing
+        # GitHub Pages has no server-side rewrites; serving index.html as 404.html
+        # lets deep links (e.g. /daily) and refreshes reach the React router.
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

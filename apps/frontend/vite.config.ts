@@ -5,6 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Public base path. Defaults to '/' for local dev; CI sets BASE_PATH to the
+  // GitHub Pages subpath (e.g. '/Geobiograph.io/'). Vite exposes this to the app
+  // as import.meta.env.BASE_URL, which the router uses as its basename.
+  base: process.env.BASE_PATH || '/',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
