@@ -51,13 +51,12 @@ jobs:
           # base path must match the repository name. If you later attach a custom
           # domain (served from the root), change this to '/'.
           BASE_PATH: /Geobioguessr/
-          # The deployed backend's API base, e.g. https://your-backend.example.com/api
-          # Configure it as a repository Variable:
-          #   Settings -> Secrets and variables -> Actions -> Variables -> New variable
-          #   Name: VITE_API_URL
-          # If left unset it falls back to '/api', which has no backend on Pages,
-          # so the game UI will load but cannot fetch figures.
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          # NOTE: the backend API base (VITE_API_URL) is read from the committed
+          # apps/frontend/.env.production by Vite's production mode. Do NOT set it
+          # here as a shell env var / repo Variable: an unset Variable resolves to
+          # an empty string, which (having highest precedence in Vite) would
+          # override .env.production and silently break the build to the '/api'
+          # fallback. To change the backend URL, edit .env.production.
         run: pnpm build
 
       - name: Add SPA fallback for client-side routing

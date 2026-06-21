@@ -11,7 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
-.env
+
+# .env.development / .env.production are committed (the API URL is public and
+# ships in the bundle). Local secret overrides use .env*.local (ignored above).
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
