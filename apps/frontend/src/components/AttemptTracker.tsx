@@ -11,7 +11,13 @@ export function potentialScore(wrongGuesses: number): number {
 }
 
 export function AttemptTracker({ game, guesses }: { game: GameState; guesses: GuessRecord[] }) {
-  const pips = Array.from({ length: game.maxAttempts }, (_, i) => i <= game.wrongGuesses)
+  // One bar per attempt, reflecting the actual guesses made: green for the
+  // winning guess, red for wrong ones, grey for unused attempts. The correct
+  // guess ends the game without burning an attempt, so it isn't counted in
+  // wrongGuesses — drive the bars (and the count) off the guess history so a
+  // solved game shows the full number of guesses used.
+  const attemptsUsed = game.wrongGuesses + (game.solved ? 1 : 0)
+  const pips = Array.from({ length: game.maxAttempts }, (_, i) => guesses[i])
 
   return (
     <div className="space-y-3">
@@ -19,7 +25,7 @@ export function AttemptTracker({ game, guesses }: { game: GameState; guesses: Gu
         <div>
           <div className="text-[11px] uppercase tracking-wide text-muted">Attempts</div>
           <div className="text-sm text-text">
-            {game.wrongGuesses} / {game.maxAttempts} used
+            {attemptsUsed} / {game.maxAttempts} used
           </div>
         </div>
         <div className="text-right">
@@ -33,12 +39,12 @@ export function AttemptTracker({ game, guesses }: { game: GameState; guesses: Gu
       </div>
 
       <div className="flex gap-1.5">
-        {pips.map((used, i) => (
+        {pips.map((guess, i) => (
           <div
             key={i}
             className={cn(
               'h-2 flex-1 rounded-full transition-colors',
-              used ? 'bg-danger' : 'bg-border',
+              guess ? (guess.correct ? 'bg-success' : 'bg-danger') : 'bg-border',
             )}
           />
         ))}

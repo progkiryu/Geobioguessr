@@ -21,7 +21,7 @@ async function main() {
 
   const app = createApp();
   const server = app.listen(env.port, () => {
-    console.log(`[startup] Geobiograph API listening on http://localhost:${env.port}`);
+    console.log(`[startup] Geobioguessr API listening on http://localhost:${env.port}`);
   });
 
   const shutdown = async (signal: string) => {

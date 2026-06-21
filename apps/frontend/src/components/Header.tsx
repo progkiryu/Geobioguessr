@@ -16,7 +16,8 @@ export function Header() {
             <Globe2 className="size-5" />
           </span>
           <span className="font-display text-xl font-bold tracking-tight">
-            geobio<span className="text-accent">guessr</span>
+            <span className="text-success">geo</span><span className="text-danger">bio</span>
+            <span className="text-accent">guessr</span>
           </span>
         </NavLink>
 

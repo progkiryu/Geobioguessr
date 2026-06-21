@@ -1,7 +1,7 @@
 services:
   mongo:
     image: mongo:7
-    container_name: geobiograph-mongo
+    container_name: geobioguessr-mongo
     restart: unless-stopped
     ports:
       - "27017:27017"
@@ -15,7 +15,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: geobiograph-redis
+    container_name: geobioguessr-redis
     restart: unless-stopped
     ports:
       - "6379:6379"

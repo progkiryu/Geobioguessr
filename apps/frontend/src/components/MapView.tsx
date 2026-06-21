@@ -12,7 +12,9 @@ import { Spinner } from '@/components/ui/spinner'
  */
 
 const WORLD = 1000
-const MIN_SPAN = 80
+// Smaller span = more zoomed in. Lowered so the user can zoom further in
+// (down to ~city/region level) than the previous country-block cap.
+const MIN_SPAN = 22
 const MAX_SPAN = WORLD
 // Country names appear once the visible span is half the world or less
 // (i.e. roughly half-way zoomed in).
