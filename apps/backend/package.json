@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "start:prod": "cross-env NODE_ENV=production tsx src/index.ts",
+    "start:prod": "cross-env NODE_ENV=production node dist-backend/index.js",
     "seed": "tsx src/seed.ts",
     "seed:prod": "cross-env NODE_ENV=production tsx src/seed.ts",
     "check:prod": "cross-env NODE_ENV=production tsx src/scripts/check-connections.ts",
