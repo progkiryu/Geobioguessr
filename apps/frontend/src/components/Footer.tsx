@@ -31,7 +31,6 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-border pt-5 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-          <span>© {year} geobioguessr</span>
           <span>
             Figure data from{' '}
             <a
