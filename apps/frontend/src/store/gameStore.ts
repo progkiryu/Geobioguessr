@@ -29,9 +29,13 @@ function recallGameId(mode: GameMode): string | null {
   }
 }
 
-/** UTC day key — matches the backend's daily rollover. */
+/** Local-day key (YYYY-MM-DD) so the Daily rolls over at the player's own midnight. */
 function todayKey(): string {
-  return new Date().toISOString().slice(0, 10)
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 /** A persisted game is still usable if it's the right mode and (for daily) today's. */
@@ -95,7 +99,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   startGame: async (mode) => {
     set({ status: 'loading', error: null, notice: null, mode, game: null, guesses: [] })
     try {
-      const game = mode === 'daily' ? await api.startDaily() : await api.startRandom()
+      const game = mode === 'daily' ? await api.startDaily(todayKey()) : await api.startRandom()
       rememberGameId(mode, game.gameId)
       set({ game, guesses: game.guesses ?? [], status: game.over ? 'finished' : 'playing' })
     } catch (err) {

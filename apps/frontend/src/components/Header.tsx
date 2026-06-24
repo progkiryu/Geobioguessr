@@ -1,5 +1,4 @@
 import { NavLink } from 'react-router-dom'
-import { Globe2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const links = [
@@ -11,9 +10,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-border bg-bg/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <NavLink to="/" className="flex items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-lg bg-accent/15 text-accent">
-            <Globe2 className="size-5" />
-          </span>
+          <img src="/logo.png" alt="Geobioguessr logo" className="size-9 rounded-lg bg-accent/15 text-accent object-contain" />
           <span className="font-display text-xl font-bold tracking-tight">
             <span className="text-success">geo</span><span className="text-danger">bio</span>
             <span className="text-accent">guessr</span>

@@ -42,7 +42,7 @@ function resolveRedisUrl(): string {
 
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  port: num(process.env.PORT, 4000),
+  port: num(process.env.PORT, isProduction ? 3000 : 4000),
   clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:5173',
   mongoUrl: process.env.MONGO_URL ?? 'mongodb://localhost:27017',
   mongoDb: process.env.MONGO_DB ?? 'geobiograph',

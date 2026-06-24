@@ -22,7 +22,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   startRandom: () => request<GameState>('/game/random'),
-  startDaily: () => request<GameState>('/game/daily'),
+  startDaily: (date?: string) =>
+    request<GameState>(`/game/daily${date ? `?date=${encodeURIComponent(date)}` : ''}`),
   getGame: (gameId: string) => request<GameState>(`/game/${gameId}`),
 
   submitGuess: (gameId: string, guess: string) =>

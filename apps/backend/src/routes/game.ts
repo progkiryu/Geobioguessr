@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getGameState, startRandomGame, submitGuess } from '../services/gameService.js';
-import { getDailyFigure, startDailyGame, todayKey } from '../services/dailyService.js';
+import { getDailyFigure, resolveDailyDate, startDailyGame } from '../services/dailyService.js';
 
 export const gameRouter = Router();
 
@@ -22,11 +22,13 @@ gameRouter.get('/random', async (_req, res, next) => {
   }
 });
 
-// GET /api/game/daily — start today's daily challenge
-gameRouter.get('/daily', async (_req, res, next) => {
+// GET /api/game/daily?date=YYYY-MM-DD — start the daily challenge for the
+// caller's local day (defaults to the server's UTC day if no/invalid date).
+gameRouter.get('/daily', async (req, res, next) => {
   try {
-    const state = await startDailyGame();
-    res.json({ ...state, date: state.date ?? todayKey() });
+    const dateKey = resolveDailyDate(req.query.date);
+    const state = await startDailyGame(dateKey);
+    res.json({ ...state, date: state.date ?? dateKey });
   } catch (err) {
     next(err);
   }

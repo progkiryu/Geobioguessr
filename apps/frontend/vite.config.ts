@@ -19,8 +19,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       // Proxy API calls to the Express backend in dev (avoids CORS).
+      // The backend listens on 3000 in development (see apps/backend/.env.dev).
       '/api': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:3000',
         changeOrigin: true,
       },
     },

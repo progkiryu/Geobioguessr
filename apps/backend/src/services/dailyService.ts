@@ -9,6 +9,24 @@ export function todayKey(now: Date = new Date()): string {
   return now.toISOString().slice(0, 10);
 }
 
+const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Resolve the date for a daily request. Clients send their local calendar day so
+ * the Daily rolls over at the player's own midnight. We only honour a date within
+ * one day of the server's UTC date (the widest real timezone offset is just under
+ * ±1 day); anything else falls back to the UTC day, so future puzzles can't be
+ * fetched early by sending an arbitrary date.
+ */
+export function resolveDailyDate(requested: unknown, now: Date = new Date()): string {
+  if (typeof requested !== 'string' || !DATE_KEY_RE.test(requested)) return todayKey(now);
+  const requestedMs = Date.parse(`${requested}T00:00:00Z`);
+  if (Number.isNaN(requestedMs)) return todayKey(now);
+  const dayMs = 86_400_000;
+  const diffDays = Math.round((requestedMs - Date.parse(`${todayKey(now)}T00:00:00Z`)) / dayMs);
+  return Math.abs(diffDays) <= 1 ? requested : todayKey(now);
+}
+
 /** Deterministic hash of a string to a non-negative integer. */
 function hashString(str: string): number {
   let hash = 0;
