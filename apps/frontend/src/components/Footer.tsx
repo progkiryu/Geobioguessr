@@ -1,11 +1,4 @@
-import { NavLink } from 'react-router-dom'
-import { Globe2, Github } from 'lucide-react'
-import { cn } from '@/lib/utils'
-
-const navLinks = [
-  { to: '/', label: 'Daily', end: true },
-  { to: '/random', label: 'Play' },
-]
+import { Github } from 'lucide-react'
 
 export function Footer() {
   const year = new Date().getFullYear()
