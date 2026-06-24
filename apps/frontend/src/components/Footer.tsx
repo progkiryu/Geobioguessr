@@ -1,8 +1,6 @@
 import { Github } from 'lucide-react'
 
 export function Footer() {
-  const year = new Date().getFullYear()
-
   return (
     <footer className="mt-auto border-t border-border bg-bg/60 backdrop-blur-md">
       <div className="mx-auto max-w-6xl px-4 py-8">
