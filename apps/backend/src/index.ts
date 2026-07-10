@@ -21,7 +21,7 @@ async function initDataStores() {
 }
 
 async function main() {
-  // Start listening first so the host platform (e.g. Render) immediately detects
+  // Start listening first so a reverse proxy / process manager immediately sees
   // the open port, then connect to the data stores. A DB failure is logged but
   // doesn't stop the server booting — the process stays up and DB-backed routes
   // simply return errors until connectivity is restored.

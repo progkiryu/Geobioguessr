@@ -3,10 +3,11 @@ import { env, isProduction } from '../config/env.js';
 import { connectMongo, closeMongo, figures } from '../db/mongo.js';
 
 /**
- * Verifies connectivity to the production MongoDB and Redis cloud services.
+ * Verifies connectivity to the production MongoDB and Redis services (the
+ * localhost instances the VPS runs alongside the API, per .env.prod).
  *
- * Deliberately refuses to run unless NODE_ENV=production, so it only ever
- * exercises the prod cloud endpoints (never the local dev services). Run with:
+ * Deliberately refuses to run unless NODE_ENV=production, so it always loads
+ * .env.prod rather than the local dev config. Run with:
  *   pnpm check:prod
  */
 
@@ -77,22 +78,8 @@ async function main() {
     const result = await tryRedis(env.redisUrl);
     console.log(`[redis] ✓ OK — ${result}`);
   } catch (err) {
+    ok = false;
     console.error(`[redis] ✗ FAILED — ${(err as Error).message}`);
-    // The most common cause is TLS: many Redis Cloud endpoints require rediss://.
-    if (!env.redisUrl.startsWith('rediss://')) {
-      const tlsUrl = env.redisUrl.replace(/^redis:\/\//, 'rediss://');
-      console.log('[redis]   retrying with TLS (rediss://)...');
-      try {
-        const result = await tryRedis(tlsUrl);
-        console.log(`[redis] ✓ OK over TLS — ${result}`);
-        console.log('[redis]   => add REDIS_TLS=true to .env.prod to use this connection.');
-      } catch (tlsErr) {
-        ok = false;
-        console.error(`[redis] ✗ TLS attempt also FAILED — ${(tlsErr as Error).message}`);
-      }
-    } else {
-      ok = false;
-    }
   }
 
   console.log(`\n[check] ${ok ? '✓ all connections OK' : '✗ one or more connections failed'}`);

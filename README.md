@@ -160,7 +160,19 @@ game is over. Scores are computed server-side against the stored session.
 
 ## Configuration
 
-Backend reads from `apps/backend/.env`:
+The backend loads one env file based on `NODE_ENV` (see
+[`src/config/env.ts`](apps/backend/src/config/env.ts)):
+
+- `NODE_ENV=production` → `apps/backend/.env.prod`
+- otherwise → `apps/backend/.env.dev`
+
+Both are git-ignored. Copy the template to create them:
+
+```bash
+cd apps/backend
+cp .env.example .env.dev    # local dev (Docker Compose services)
+cp .env.example .env.prod   # VPS (Mongo/Redis on localhost)
+```
 
 ```
 PORT=4000
@@ -172,8 +184,33 @@ SEARCH_CACHE_TTL=300
 GAME_SESSION_TTL=86400
 ```
 
-Frontend reads `VITE_API_URL` (defaults to `/api`, proxied in dev). For a
-deployed frontend, set it to the full backend URL.
+Frontend reads `VITE_API_URL` (defaults to `/api`, proxied in dev). The
+committed `apps/frontend/.env.production` points the deployed build at the
+backend URL (`https://api.geobioguessr.com/api`).
+
+---
+
+## Deployment
+
+- **Frontend** → GitHub Pages via
+  [`.github/workflows/deploy-frontend.yml`](.github/workflows/deploy-frontend.yml)
+  on push to `main` (custom domain `www.geobioguessr.com`).
+- **Backend + MongoDB + Redis** → a single self-hosted VPS. MongoDB and Redis
+  run on the VPS bound to `localhost`; the API connects to them locally (see
+  `.env.prod`). Build and run with:
+
+  ```bash
+  cd apps/backend
+  pnpm install
+  pnpm build
+  pnpm check:prod   # verify local Mongo + Redis connectivity
+  pnpm seed:prod    # populate the database (first deploy only)
+  pnpm start:prod   # NODE_ENV=production node dist-backend/index.js
+  ```
+
+  Put the API behind a reverse proxy (nginx/Caddy) terminating TLS for
+  `api.geobioguessr.com`, and use a process manager (systemd/pm2) to keep it
+  running.
 
 ---
 

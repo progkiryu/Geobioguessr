@@ -542,7 +542,8 @@ Map Source:
 
 Hosting:
 
-- GitHub Pages
+- Frontend: GitHub Pages (custom domain www.geobioguessr.com)
+- Backend + MongoDB + Redis: self-hosted on a VPS (all on one box, databases bound to localhost)
 
 DNS:
 
